@@ -1,4 +1,4 @@
-const CACHE_VERSION = "iamsainto-v4";
+const CACHE_VERSION = "iamsainto-v5";
 const CACHE_PREFIX = "iamsainto-";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const DATA_CACHE = CACHE_VERSION + "-data";
@@ -22,6 +22,13 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
   const scopePath = new URL(self.registration.scope).pathname;
   if (!url.pathname.startsWith(scopePath)) return;
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request).then(response => {
+      if (response.ok) caches.open(STATIC_CACHE).then(cache => cache.put(event.request, response.clone()));
+      return response;
+    }).catch(() => caches.match(event.request).then(cached => cached || caches.match("./offline.html"))));
+    return;
+  }
   const liveData = url.pathname.endsWith("/status.json") || url.pathname.endsWith("/live-stats.json");
   if (liveData) {
     event.respondWith(fetch(event.request).then(response => {
