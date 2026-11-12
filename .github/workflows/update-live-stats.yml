@@ -1,0 +1,41 @@
+name: Update live statistics
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-live-statistics
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch platform statistics
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_CHANNELS_JSON: ${{ secrets.YOUTUBE_CHANNELS_JSON }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_CHANNELS_JSON: ${{ secrets.TWITCH_CHANNELS_JSON }}
+        run: |
+          if ! node scripts/update-live-stats.mjs > live-stats.next.json; then
+            rm -f live-stats.next.json
+            echo "API data unavailable; keeping the existing file."
+            exit 0
+          fi
+          mv live-stats.next.json live-stats.json
+      - name: Commit only changed data
+        run: |
+          if git diff --quiet -- live-stats.json; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add live-stats.json
+          git commit -m "chore: update live statistics"
+          git push
