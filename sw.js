@@ -1,4 +1,4 @@
-const CACHE_VERSION = "iamsainto-v3";
+const CACHE_VERSION = "iamsainto-v4";
 const CACHE_PREFIX = "iamsainto-";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const DATA_CACHE = CACHE_VERSION + "-data";
