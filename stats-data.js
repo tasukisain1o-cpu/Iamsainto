@@ -3,8 +3,6 @@
 // Ссылки на соцсети здесь намеренно отсутствуют.
 var STATS_DATE = "2026-11-11";
 
-// TODO: subsNote служебное поле; уточнить актуальное значение и не выводить на сайт.
-
 var STATS_DETAIL = {
   youtube: [
     {
@@ -31,7 +29,7 @@ var STATS_DETAIL = {
       note: "Стрим «Празднуем 100 подписчиков»"
     },
     {
-      name: "EleganthyFIFA", since: "2025-07-30", subs: 124, subsNote: "уточнить актуальное значение", views: 47325,
+      name: "EleganthyFIFA", since: "2025-07-30", subs: 128, views: 47325,
       split: { video: 38303, shorts: 8654, streams: 363 },
       topVideos: [9000, 6500, 3500, 3400, 3200],
       topShorts: [2700, 2400, 1800, 1500],
