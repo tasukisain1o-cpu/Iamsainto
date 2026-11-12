@@ -22,19 +22,19 @@ var STATS_DETAIL = {
       concurrent: { max: 18, avg: 3 }
     },
     {
-      name: "Young Chef", since: "2024-04-28", subs: 193, views: 423293,
-      split: { video: { value: 15244, derived: true }, shorts: 408045, streams: 4 },
-      topShorts: [62100, 48700, 40700, 32600],
-      concurrent: { max: 3, avg: 1 },
-      note: "Стрим «Празднуем 100 подписчиков»"
-    },
-    {
-      name: "EleganthyFIFA", since: "2025-07-30", subs: 128, views: 47325,
+      name: "Young Chef", since: "2024-04-28", subs: 128, views: 47325,
       split: { video: 38303, shorts: 8654, streams: 363 },
       topVideos: [9000, 6500, 3500, 3400, 3200],
       topShorts: [2700, 2400, 1800, 1500],
       topStreams: [84, 53, 53, 35, 31],
       concurrent: { max: 10, avg: 4 }
+    },
+    {
+      name: "EleganthyFIFA", since: "2025-07-30", subs: 193, views: 423293,
+      split: { video: { value: 15244, derived: true }, shorts: 408045, streams: 4 },
+      topShorts: [62100, 48700, 40700, 32600],
+      concurrent: { max: 3, avg: 1 },
+      note: "Стрим «Празднуем 100 подписчиков»"
     }
   ],
 
