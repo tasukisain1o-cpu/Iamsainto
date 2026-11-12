@@ -1,4 +1,5 @@
-const CACHE_VERSION = "iamsainto-v2";
+const CACHE_VERSION = "iamsainto-v3";
+const CACHE_PREFIX = "iamsainto-";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const DATA_CACHE = CACHE_VERSION + "-data";
 const STATIC_ASSETS = [
@@ -13,12 +14,14 @@ self.addEventListener("install", event => {
   event.waitUntil(caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => ![STATIC_CACHE, DATA_CACHE].includes(key)).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && ![STATIC_CACHE, DATA_CACHE].includes(key)).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  const scopePath = new URL(self.registration.scope).pathname;
+  if (!url.pathname.startsWith(scopePath)) return;
   const liveData = url.pathname.endsWith("/status.json") || url.pathname.endsWith("/live-stats.json");
   if (liveData) {
     event.respondWith(fetch(event.request).then(response => {

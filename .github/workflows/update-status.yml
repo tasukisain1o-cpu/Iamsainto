@@ -5,11 +5,15 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: update-stream-status
+  cancel-in-progress: false
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
       - name: Build status.json
         env:
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
@@ -18,18 +22,12 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
         run: |
-          twitch=false
-          youtube=false
-          if [ -n "$TWITCH_CLIENT_ID" ] && [ -n "$TWITCH_CLIENT_SECRET" ] && [ -n "$TWITCH_USER_LOGIN" ]; then
-            token=$(curl -fsS -X POST "https://id.twitch.tv/oauth2/token?client_id=$TWITCH_CLIENT_ID&client_secret=$TWITCH_CLIENT_SECRET&grant_type=client_credentials" | jq -r .access_token)
-            count=$(curl -fsS -H "Client-Id: $TWITCH_CLIENT_ID" -H "Authorization: Bearer $token" "https://api.twitch.tv/helix/streams?user_login=$TWITCH_USER_LOGIN" | jq '.data | length')
-            [ "$count" -gt 0 ] && twitch=true
+          if ! node scripts/update-status.mjs > status.next.json; then
+            rm -f status.next.json
+            echo "API data unavailable; keeping the existing status."
+            exit 0
           fi
-          if [ -n "$YOUTUBE_API_KEY" ] && [ -n "$YOUTUBE_CHANNEL_ID" ]; then
-            count=$(curl -fsS "https://www.googleapis.com/youtube/v3/search?part=id&channelId=$YOUTUBE_CHANNEL_ID&eventType=live&type=video&key=$YOUTUBE_API_KEY" | jq '.items | length')
-            [ "$count" -gt 0 ] && youtube=true
-          fi
-          jq -n --arg updatedAt "$(date -u +%FT%TZ)" --argjson twitch "$twitch" --argjson youtube "$youtube" '{updatedAt:$updatedAt,twitch:{live:$twitch},youtube:{live:$youtube}}' > status.json
+          mv status.next.json status.json
       - name: Commit status
         run: |
           git config user.name github-actions[bot]

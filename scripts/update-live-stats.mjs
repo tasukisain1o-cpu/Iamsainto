@@ -7,7 +7,7 @@ const twMap = JSON.parse(process.env.TWITCH_CHANNELS_JSON || "{}");
 let requested = 0;
 
 async function getJSON(url, options) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, {...options, signal: AbortSignal.timeout(15_000)});
   if (!response.ok) throw new Error(`${response.status} ${url}`);
   return response.json();
 }
@@ -29,11 +29,9 @@ if (process.env.YOUTUBE_API_KEY && Object.keys(ytMap).length) {
 
 if (process.env.TWITCH_CLIENT_ID && process.env.TWITCH_CLIENT_SECRET && Object.keys(twMap).length) {
   requested++;
-  const tokenURL = new URL("https://id.twitch.tv/oauth2/token");
-  tokenURL.searchParams.set("client_id", process.env.TWITCH_CLIENT_ID);
-  tokenURL.searchParams.set("client_secret", process.env.TWITCH_CLIENT_SECRET);
-  tokenURL.searchParams.set("grant_type", "client_credentials");
-  const token = await getJSON(tokenURL, {method: "POST"});
+  const tokenBody = new URLSearchParams({client_id: process.env.TWITCH_CLIENT_ID, client_secret: process.env.TWITCH_CLIENT_SECRET, grant_type: "client_credentials"});
+  const token = await getJSON("https://id.twitch.tv/oauth2/token", {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: tokenBody});
+  if (typeof token.access_token !== "string") throw new Error("Twitch did not return an access token");
   for (const [name, broadcasterId] of Object.entries(twMap)) {
     const data = await getJSON(`https://api.twitch.tv/helix/channels/followers?broadcaster_id=${encodeURIComponent(broadcasterId)}`, {headers: {"Client-Id": process.env.TWITCH_CLIENT_ID, Authorization: `Bearer ${token.access_token}`}});
     if (!Number.isFinite(data.total)) throw new Error(`Twitch channel not returned: ${name}`);
